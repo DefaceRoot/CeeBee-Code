@@ -1,7 +1,7 @@
 ---
 name: planning-lead
 description: Planning team coordinator — investigates codebase, decomposes tasks, identifies parallelization opportunities
-tools: read, bash, find, grep, ls
+tools: read, bash, find, grep, ls, subagent
 model: anthropic/claude-sonnet-4
 skills: writing-plans, brainstorming
 ---

@@ -1,7 +1,7 @@
 ---
 name: engineering-lead
 description: Engineering team coordinator — verifies plan, decomposes implementation, delegates to domain workers
-tools: read, bash, find, grep, ls
+tools: read, bash, find, grep, ls, subagent
 model: anthropic/claude-sonnet-4
 skills:
 ---
