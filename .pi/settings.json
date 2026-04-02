@@ -1,0 +1,22 @@
+{
+  "packages": [
+    "git:github.com/nicobailon/pi-subagents",
+    "git:github.com/nicobailon/pi-prompt-template-model",
+    "git:github.com/nicobailon/pi-mcp-adapter",
+    {
+      "source": "git:github.com/hjanuschka/shitty-extensions",
+      "extensions": [
+        "extensions/handoff.ts"
+      ]
+    },
+    "git:github.com/Graffioh/pi-screenshots-picker",
+    "git:github.com/nicobailon/pi-rewind-hook",
+    "git:github.com/nicobailon/pi-powerline-footer",
+    "git:github.com/jayzeng/pi-memory",
+    "git:github.com/nicobailon/pi-interview-tool",
+    "npm:@plannotator/pi-extension"
+  ],
+  "orchestratorSystem": {
+    "defaultRole": "default"
+  }
+}
