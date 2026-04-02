@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Wrapper so 'pi' works from this repo without a global install.
+# Usage: ./pi [args...]  or add repo root to PATH: export PATH="$PWD:$PATH"
+exec "$(dirname "${BASH_SOURCE[0]}")/pi-test.sh" "$@"
