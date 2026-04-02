@@ -12,7 +12,18 @@ function formatRoleStatus(role: Role): string {
 
 /** Tool sets per role. Memory tools are included for Plan/Orchestrator if pi-memory is installed. */
 function getToolsForRole(role: Role, allToolNames: string[]): string[] | null {
-  if (role === "default") return null; // null = restore all tools
+  if (role === "default") {
+    return allToolNames.filter((t) =>
+      ![
+        "memory_write",
+        "memory_read",
+        "scratchpad",
+        "memory_search",
+        "subagent",
+        "subagent_status",
+      ].includes(t),
+    );
+  }
 
   const memoryTools = allToolNames.filter((t) =>
     ["memory_write", "memory_read", "scratchpad", "memory_search"].includes(t),

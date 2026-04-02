@@ -23,8 +23,15 @@ export function registerRoleSwitcher(
     );
 
     if (role === "default") {
-      // Restore all tools
-      pi.setActiveTools(allTools);
+      const excludedTools = [
+        "memory_write",
+        "memory_read",
+        "scratchpad",
+        "memory_search",
+        "subagent",
+        "subagent_status",
+      ];
+      pi.setActiveTools(allTools.filter((t) => !excludedTools.includes(t)));
     } else if (role === "orchestrator") {
       pi.setActiveTools(["read", "subagent", "subagent_status", ...memoryTools]);
     } else if (role === "plan") {
@@ -36,7 +43,7 @@ export function registerRoleSwitcher(
   }
 
   const descriptions: Record<Role, string> = {
-    default: "Vanilla pi — no delegation, all tools available",
+    default: "Vanilla pi — no memory injection, no subagent delegation",
     plan: "Interactive planning — research, explore, write plans",
     orchestrator: "Chain delegation — Planning → Engineering → Validation → Docs",
   };
