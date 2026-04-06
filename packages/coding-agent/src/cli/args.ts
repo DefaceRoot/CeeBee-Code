@@ -212,7 +212,7 @@ ${chalk.bold("Options:")}
                                  Supports globs (anthropic/*, *sonnet*) and fuzzy matching
   --no-tools                     Disable all built-in tools
   --tools <tools>                Comma-separated list of tools to enable (default: read,bash,edit,write)
-                                 Available: read, bash, edit, write, grep, find, ls
+                                 Available: read, bash, edit, write, grep, find, ls, web_search
   --thinking <level>             Set thinking level: off, minimal, low, medium, high, xhigh
   --extension, -e <path>         Load an extension file (can be used multiple times)
   --no-extensions, -ne           Disable extension discovery (explicit -e paths still work)
@@ -293,6 +293,13 @@ ${chalk.bold("Environment Variables:")}
   XAI_API_KEY                      - xAI Grok API key
   OPENROUTER_API_KEY               - OpenRouter API key
   AI_GATEWAY_API_KEY               - Vercel AI Gateway API key
+  APERTIS_API_KEY                  - Apertis.ai API key
+  FIREWORKS_API_KEY                - Fireworks AI API key
+  KILO_API_KEY                     - Kilo Gateway API key
+  TAVILY_API_KEY                   - Tavily search API key
+  PARALLEL_API_KEY                 - Parallel search API key
+  PERPLEXITY_API_KEY               - Perplexity API key
+  PERPLEXITY_COOKIES               - Perplexity cookie header fallback for web_search
   ZAI_API_KEY                      - ZAI API key
   MISTRAL_API_KEY                  - Mistral API key
   MINIMAX_API_KEY                  - MiniMax API key
@@ -316,6 +323,7 @@ ${chalk.bold("Available Tools (default: read, bash, edit, write):")}
   write  - Write files (creates/overwrites)
   grep   - Search file contents (read-only, off by default)
   find   - Find files by glob pattern (read-only, off by default)
-  ls     - List directory contents (read-only, off by default)
+  ls         - List directory contents (read-only, off by default)
+  web_search - Search the web via configured built-in providers (off by default)
 `);
 }

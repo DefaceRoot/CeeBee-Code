@@ -2,9 +2,10 @@
 name: changelog-doc-worker
 description: Owns CHANGELOG.md — updates changelog for user-facing changes
 tools: read, write, edit, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4-mini
+thinking: medium
 ---
+
 # Changelog Doc Worker
 
 You own **CHANGELOG.md**. Read the current file first, then update incrementally.

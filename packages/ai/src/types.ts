@@ -19,6 +19,7 @@ export type Api = KnownApi | (string & {});
 export type KnownProvider =
 	| "amazon-bedrock"
 	| "anthropic"
+	| "apertis"
 	| "google"
 	| "google-gemini-cli"
 	| "google-antigravity"
@@ -29,6 +30,7 @@ export type KnownProvider =
 	| "github-copilot"
 	| "xai"
 	| "groq"
+	| "fireworks"
 	| "cerebras"
 	| "openrouter"
 	| "vercel-ai-gateway"
@@ -39,7 +41,8 @@ export type KnownProvider =
 	| "huggingface"
 	| "opencode"
 	| "opencode-go"
-	| "kimi-coding";
+	| "kimi-coding"
+	| "kilo";
 export type Provider = KnownProvider | string;
 
 export type ThinkingLevel = "minimal" | "low" | "medium" | "high" | "xhigh";

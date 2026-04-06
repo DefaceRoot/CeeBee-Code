@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import type { ToolDefinition } from "../src/core/extensions/types.js";
 import { type BashOperations, createBashToolDefinition } from "../src/core/tools/bash.js";
 import { createReadTool, createReadToolDefinition } from "../src/core/tools/read.js";
+import { createWebSearchToolDefinition } from "../src/core/tools/web-search/index.js";
 import { createWriteToolDefinition } from "../src/core/tools/write.js";
 import { ToolExecutionComponent } from "../src/modes/interactive/components/tool-execution.js";
 import { initTheme } from "../src/modes/interactive/theme/theme.js";
@@ -300,5 +301,38 @@ describe("ToolExecutionComponent parity", () => {
 		expect(rendered).toContain("one");
 		expect(rendered).toContain("two");
 		expect(rendered).not.toContain("two\n\n");
+	});
+
+	test("uses built-in renderers for web_search", () => {
+		const component = new ToolExecutionComponent(
+			"web_search",
+			"tool-9",
+			{ query: "pi mono", provider: "tavily", maxResults: 3 },
+			{},
+			createWebSearchToolDefinition(process.cwd()),
+			createFakeTui(),
+		);
+		component.updateResult(
+			{
+				content: [{ type: "text", text: "1. Pi Mono\n   https://example.com" }],
+				details: {
+					response: {
+						ok: true,
+						provider: "tavily",
+						query: "pi mono",
+						results: [{ title: "Pi Mono", url: "https://example.com", snippet: "Project homepage" }],
+						warnings: [],
+					},
+				},
+				isError: false,
+			},
+			false,
+		);
+		const rendered = stripAnsi(component.render(120).join("\n"));
+		expect(rendered).toContain("web_search");
+		expect(rendered).toContain('"pi mono"');
+		expect(rendered).toContain("via tavily");
+		expect(rendered).toContain("Pi Mono");
+		expect(rendered).toContain("https://example.com");
 	});
 });

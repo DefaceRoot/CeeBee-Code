@@ -69,7 +69,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 pi
 ```
 
-Or use your existing subscription:
+Or use an interactive provider login flow:
 
 ```bash
 pi
@@ -84,34 +84,46 @@ Then just talk to pi. By default, pi gives the model four tools: `read`, `write`
 
 ## Providers & Models
 
-For each built-in provider, pi maintains a list of tool-capable models, updated with every release. Authenticate via subscription (`/login`) or API key, then select any model from that provider via `/model` (or Ctrl+L).
+For each built-in provider, pi maintains a list of tool-capable models, updated with every release. Authenticate via `/login`, environment variables, or `~/.pi/agent/auth.json`, then select any model from that provider via `/model` (or Ctrl+L).
 
-**Subscriptions:**
+**`/login` providers:**
 - Anthropic Claude Pro/Max
 - OpenAI ChatGPT Plus/Pro (Codex)
 - GitHub Copilot
 - Google Gemini CLI
 - Google Antigravity
+- Kilo Gateway (device login)
+- Apertis.ai
+- Fireworks AI
+- Tavily
+- Parallel
+- Perplexity
+- Z.AI
 
-**API keys:**
+**Model providers via API key or saved credentials:**
 - Anthropic
+- Apertis.ai
 - OpenAI
 - Azure OpenAI
 - Google Gemini
 - Google Vertex
 - Amazon Bedrock
+- Fireworks AI
+- Kilo Gateway
 - Mistral
 - Groq
 - Cerebras
 - xAI
 - OpenRouter
 - Vercel AI Gateway
-- ZAI
+- Z.AI
 - OpenCode Zen
 - OpenCode Go
 - Hugging Face
 - Kimi For Coding
 - MiniMax
+
+**Built-in web search:** `web_search` is an optional built-in tool. In automatic mode it tries Tavily, Perplexity, Z.AI, then Parallel, continuing to the next configured provider if one fails. Setting the tool input `provider` disables fallback and uses only that provider. `PERPLEXITY_COOKIES` provides an env-only Perplexity fallback and should be set to a single-line `Cookie` header value. Tavily currently expects its API key in the request body because that is how its API is documented. The current Z.AI search path reports a limitation because this build does not include the remote MCP client required for Z.AI web search.
 
 See [docs/providers.md](docs/providers.md) for detailed setup instructions.
 
@@ -150,7 +162,7 @@ Type `/` in the editor to trigger commands. [Extensions](#extensions) can regist
 
 | Command | Description |
 |---------|-------------|
-| `/login`, `/logout` | OAuth authentication |
+| `/login`, `/logout` | Authenticate with a provider or remove saved provider credentials |
 | `/model` | Switch models |
 | `/scoped-models` | Enable/disable models for Ctrl+P cycling |
 | `/settings` | Thinking level, theme, message delivery, transport |
@@ -503,7 +515,7 @@ cat README.md | pi -p "Summarize this text"
 | `--tools <list>` | Enable specific built-in tools (default: `read,bash,edit,write`) |
 | `--no-tools` | Disable all built-in tools (extension tools still work) |
 
-Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`
+Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`, `web_search`
 
 ### Resource Options
 
@@ -579,6 +591,13 @@ pi --thinking high "Solve this complex problem"
 | `PI_PACKAGE_DIR` | Override package directory (useful for Nix/Guix where store paths tokenize poorly) |
 | `PI_SKIP_VERSION_CHECK` | Skip version check at startup |
 | `PI_CACHE_RETENTION` | Set to `long` for extended prompt cache (Anthropic: 1h, OpenAI: 24h) |
+| `APERTIS_API_KEY` | Apertis.ai API key |
+| `FIREWORKS_API_KEY` | Fireworks AI API key |
+| `KILO_API_KEY` | Kilo Gateway API key |
+| `TAVILY_API_KEY` | Tavily search API key |
+| `PARALLEL_API_KEY` | Parallel search API key |
+| `PERPLEXITY_API_KEY` | Perplexity API key |
+| `PERPLEXITY_COOKIES` | Single-line Perplexity `Cookie` header fallback for `web_search` |
 | `VISUAL`, `EDITOR` | External editor for Ctrl+G |
 
 ---

@@ -13,6 +13,7 @@ export function registerRoleSwitcher(
   pi: ExtensionAPI,
   roleManager: RoleManager,
   _config: OrchestratorConfig,
+  onRoleChange?: (role: Role) => void,
 ): void {
   /** Apply tool restrictions for the given role. */
   function applyToolRestriction(role: Role): void {
@@ -71,6 +72,7 @@ export function registerRoleSwitcher(
 
       roleManager.setRole(selectedRole);
       applyToolRestriction(selectedRole);
+      onRoleChange?.(selectedRole);
       ctx.ui.setStatus("role", formatRoleStatus(selectedRole));
       persistRoleSetting(ctx.cwd, selectedRole);
       ctx.ui.notify(
@@ -100,6 +102,7 @@ export function registerRoleSwitcher(
       const role = trimmed as Role;
       roleManager.setRole(role);
       applyToolRestriction(role);
+      onRoleChange?.(role);
       ctx.ui.setStatus("role", formatRoleStatus(role));
       persistRoleSetting(ctx.cwd, role);
       ctx.ui.notify(`Role: ${formatRoleStatus(role)}\n${descriptions[role]}`, "info");

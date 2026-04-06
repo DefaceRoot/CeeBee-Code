@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added login-capable providers for Apertis.ai, Fireworks AI, Kilo Gateway, Tavily, Parallel, Perplexity, and Z.AI through `@mariozechner/pi-ai/oauth`.
+- Added curated built-in model entries and environment variable support for the `apertis`, `fireworks`, and `kilo` providers.
+
+### Changed
+
+- Changed login-provider handling so interactive login flows can return either refreshable OAuth credentials or persisted API keys.
+
 ## [0.64.0] - 2026-03-29
 
 ### Added

@@ -36,10 +36,10 @@ Unified LLM API with automatic model discovery, provider configuration, token an
   - [Browser Compatibility Notes](#browser-compatibility-notes)
   - [Environment Variables](#environment-variables-nodejs-only)
   - [Checking Environment Variables](#checking-environment-variables)
-- [OAuth Providers](#oauth-providers)
+- [Login Providers](#login-providers)
   - [Vertex AI](#vertex-ai)
   - [CLI Login](#cli-login)
-  - [Programmatic OAuth](#programmatic-oauth)
+  - [Programmatic Login](#programmatic-login)
   - [Login Flow Example](#login-flow-example)
   - [Using OAuth Tokens](#using-oauth-tokens)
   - [Provider Notes](#provider-notes)
@@ -49,21 +49,24 @@ Unified LLM API with automatic model discovery, provider configuration, token an
 
 - **OpenAI**
 - **Azure OpenAI (Responses)**
-- **OpenAI Codex** (ChatGPT Plus/Pro subscription, requires OAuth, see below)
+- **OpenAI Codex** (ChatGPT Plus/Pro subscription, requires login flow support, see below)
 - **Anthropic**
+- **Apertis.ai**
 - **Google**
 - **Vertex AI** (Gemini via Vertex AI)
 - **Mistral**
 - **Groq**
 - **Cerebras**
+- **Fireworks AI**
 - **xAI**
 - **OpenRouter**
 - **Vercel AI Gateway**
 - **MiniMax**
-- **GitHub Copilot** (requires OAuth, see below)
-- **Google Gemini CLI** (requires OAuth, see below)
-- **Antigravity** (requires OAuth, see below)
+- **GitHub Copilot** (requires login flow support, see below)
+- **Google Gemini CLI** (requires login flow support, see below)
+- **Antigravity** (requires login flow support, see below)
 - **Amazon Bedrock**
+- **Kilo Gateway**
 - **OpenCode Zen**
 - **OpenCode Go**
 - **Kimi For Coding** (Moonshot AI, uses Anthropic-compatible API)
@@ -1004,9 +1007,9 @@ const response = await complete(model, {
 ### Browser Compatibility Notes
 
 - Amazon Bedrock (`bedrock-converse-stream`) is not supported in browser environments.
-- OAuth login flows are not supported in browser environments. Use the `@mariozechner/pi-ai/oauth` entry point in Node.js.
+- Interactive login flows are not supported in browser environments. Use the `@mariozechner/pi-ai/oauth` entry point in Node.js.
 - In browser builds, Bedrock can still appear in model lists. Calls to Bedrock models fail at runtime.
-- Use a server-side proxy or backend service if you need Bedrock or OAuth-based auth from a web app.
+- Use a server-side proxy or backend service if you need Bedrock or interactive login-based auth from a web app.
 
 ### Environment Variables (Node.js only)
 
@@ -1025,6 +1028,12 @@ In Node.js environments, you can set environment variables to avoid passing API 
 | xAI | `XAI_API_KEY` |
 | OpenRouter | `OPENROUTER_API_KEY` |
 | Vercel AI Gateway | `AI_GATEWAY_API_KEY` |
+| Apertis.ai | `APERTIS_API_KEY` |
+| Fireworks AI | `FIREWORKS_API_KEY` |
+| Kilo Gateway | `KILO_API_KEY` |
+| Tavily | `TAVILY_API_KEY` |
+| Parallel | `PARALLEL_API_KEY` |
+| Perplexity | `PERPLEXITY_API_KEY` |
 | zAI | `ZAI_API_KEY` |
 | MiniMax | `MINIMAX_API_KEY` |
 | OpenCode Zen / OpenCode Go | `OPENCODE_API_KEY` |
@@ -1074,15 +1083,25 @@ import { getEnvApiKey } from '@mariozechner/pi-ai';
 const key = getEnvApiKey('openai');  // checks OPENAI_API_KEY
 ```
 
-## OAuth Providers
+## Login Providers
 
-Several providers require OAuth authentication instead of static API keys:
+Several providers support interactive login flows instead of requiring you to type an API key directly into your application. Some providers return refreshable OAuth credentials, others complete a provider-hosted login flow and persist an API key.
 
+**Refreshable OAuth providers:**
 - **Anthropic** (Claude Pro/Max subscription)
 - **OpenAI Codex** (ChatGPT Plus/Pro subscription, access to GPT-5.x Codex models)
 - **GitHub Copilot** (Copilot subscription)
 - **Google Gemini CLI** (Gemini 2.0/2.5 via Google Cloud Code Assist; free tier or paid subscription)
 - **Antigravity** (Free Gemini 3, Claude, GPT-OSS via Google Cloud)
+
+**Other login-capable providers:**
+- **Kilo Gateway** (device login, stores an API key)
+- **Apertis.ai**
+- **Fireworks AI**
+- **Tavily**
+- **Parallel**
+- **Perplexity**
+- **Z.AI**
 
 For paid Cloud Code Assist subscriptions, set `GOOGLE_CLOUD_PROJECT` or `GOOGLE_CLOUD_PROJECT_ID` to your project ID.
 
@@ -1134,41 +1153,50 @@ The quickest way to authenticate:
 ```bash
 npx @mariozechner/pi-ai login              # interactive provider selection
 npx @mariozechner/pi-ai login anthropic    # login to specific provider
+npx @mariozechner/pi-ai login kilo         # device login flow
+npx @mariozechner/pi-ai login perplexity   # email + one-time code flow
 npx @mariozechner/pi-ai list               # list available providers
 ```
 
-Credentials are saved to `auth.json` in the current directory.
+Credentials are saved to `auth.json` in the current directory. Depending on the provider, the saved entry is either `{ type: "oauth", ... }` or `{ type: "api_key", key: "..." }`.
 
-### Programmatic OAuth
+### Programmatic Login
 
-The library provides login and token refresh functions via the `@mariozechner/pi-ai/oauth` entry point. Credential storage is the caller's responsibility.
+The historical `@mariozechner/pi-ai/oauth` entry point now exposes login-capable providers in general. Credential storage is the caller's responsibility. `refreshOAuthToken()` and `getOAuthApiKey()` apply only to providers that return refreshable OAuth credentials.
 
 ```typescript
 import {
   // Login functions (return credentials, do not store)
   loginAnthropic,
-  loginOpenAICodex,
+  loginApertis,
+  loginFireworks,
   loginGitHubCopilot,
   loginGeminiCli,
-  loginAntigravity,
+  loginKilo,
+  loginOpenAICodex,
+  loginParallel,
+  loginPerplexity,
+  loginTavily,
+  loginZai,
+  normalizeOAuthLoginResult,
 
-  // Token management
-  refreshOAuthToken,   // (provider, credentials) => new credentials
-  getOAuthApiKey,      // (provider, credentialsMap) => { newCredentials, apiKey } | null
+  // Token management for refreshable OAuth providers
+  refreshOAuthToken,
+  getOAuthApiKey,
 
   // Types
-  type OAuthProvider,  // 'anthropic' | 'openai-codex' | 'github-copilot' | 'google-gemini-cli' | 'google-antigravity'
   type OAuthCredentials,
+  type OAuthLoginResult,
 } from '@mariozechner/pi-ai/oauth';
 ```
 
 ### Login Flow Example
 
 ```typescript
-import { loginGitHubCopilot } from '@mariozechner/pi-ai/oauth';
+import { loginGitHubCopilot, normalizeOAuthLoginResult } from '@mariozechner/pi-ai/oauth';
 import { writeFileSync } from 'fs';
 
-const credentials = await loginGitHubCopilot({
+const loginResult = await loginGitHubCopilot({
   onAuth: (url, instructions) => {
     console.log(`Open: ${url}`);
     if (instructions) console.log(instructions);
@@ -1180,7 +1208,7 @@ const credentials = await loginGitHubCopilot({
 });
 
 // Store credentials yourself
-const auth = { 'github-copilot': { type: 'oauth', ...credentials } };
+const auth = { 'github-copilot': normalizeOAuthLoginResult(loginResult) };
 writeFileSync('auth.json', JSON.stringify(auth, null, 2));
 ```
 
@@ -1220,6 +1248,12 @@ const response = await complete(model, {
 **GitHub Copilot**: If you get "The requested model is not supported" error, enable the model manually in VS Code: open Copilot Chat, click the model selector, select the model (warning icon), and click "Enable".
 
 **Google Gemini CLI / Antigravity**: These use Google Cloud OAuth. The `apiKey` returned by `getOAuthApiKey()` is a JSON string containing both the token and project ID, which the library handles automatically.
+
+**Kilo Gateway**: `loginKilo()` uses a device authorization flow and stores the resulting gateway token as an `api_key` credential.
+
+**Apertis.ai / Fireworks AI / Tavily / Parallel / Z.AI**: Their interactive login helpers prompt for an API key and optionally validate it before returning `{ type: "api_key", key: "..." }` for storage.
+
+**Perplexity**: `loginPerplexity()` requests an email one-time code and stores the returned credential as an `api_key` entry. `PERPLEXITY_COOKIES` is an env-only fallback used by the coding agent's built-in `web_search` integration when no API key is configured.
 
 ## Development
 

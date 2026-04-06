@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "augment": {
+      "command": "auggie",
+      "args": [
+        "--mcp",
+        "--mcp-auto-workspace"
+      ],
+      "lifecycle": "keep-alive"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--isolated"
+      ],
+      "lifecycle": "lazy"
+    },
+    "ref": {
+      "url": "https://api.ref.tools/mcp?apiKey=ref-d30d983afec8788b969a",
+      "lifecycle": "lazy"
+    }
+  }
+}

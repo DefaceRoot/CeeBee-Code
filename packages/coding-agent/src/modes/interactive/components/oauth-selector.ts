@@ -38,7 +38,8 @@ export class OAuthSelectorComponent extends Container {
 		this.addChild(new Spacer(1));
 
 		// Add title
-		const title = mode === "login" ? "Select provider to login:" : "Select provider to logout:";
+		const title =
+			mode === "login" ? "Select provider to authenticate:" : "Select provider to remove credentials for:";
 		this.addChild(new TruncatedText(theme.bold(title)));
 		this.addChild(new Spacer(1));
 
@@ -56,7 +57,10 @@ export class OAuthSelectorComponent extends Container {
 	}
 
 	private loadProviders(): void {
-		this.allProviders = getOAuthProviders();
+		const providers = getOAuthProviders();
+		this.allProviders =
+			this.mode === "logout" ? providers.filter((provider) => this.authStorage.has(provider.id)) : providers;
+		this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, this.allProviders.length - 1));
 	}
 
 	private updateList(): void {
@@ -68,10 +72,10 @@ export class OAuthSelectorComponent extends Container {
 
 			const isSelected = i === this.selectedIndex;
 
-			// Check if user is logged in for this provider
+			// Check if user is authenticated for this provider
 			const credentials = this.authStorage.get(provider.id);
-			const isLoggedIn = credentials?.type === "oauth";
-			const statusIndicator = isLoggedIn ? theme.fg("success", " ✓ logged in") : "";
+			const isAuthenticated = credentials !== undefined;
+			const statusIndicator = isAuthenticated ? theme.fg("success", " ✓ authenticated") : "";
 
 			let line = "";
 			if (isSelected) {
@@ -89,7 +93,7 @@ export class OAuthSelectorComponent extends Container {
 		// Show "no providers" if empty
 		if (this.allProviders.length === 0) {
 			const message =
-				this.mode === "login" ? "No OAuth providers available" : "No OAuth providers logged in. Use /login first.";
+				this.mode === "login" ? "No login providers available" : "No authenticated providers. Use /login first.";
 			this.listContainer.addChild(new TruncatedText(theme.fg("muted", `  ${message}`), 0, 0));
 		}
 	}

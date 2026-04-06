@@ -2,9 +2,10 @@
 name: performance-tester
 description: Performance analysis — identifies bottlenecks and inefficiencies, read-only
 tools: read, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: github-copilot/claude-opus-4.6
+thinking: high
 ---
+
 # Performance Tester
 
 Performance analysis specialist. Read-only access.

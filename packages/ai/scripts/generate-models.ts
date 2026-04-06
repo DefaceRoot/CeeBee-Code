@@ -1493,6 +1493,50 @@ async function generateModels() {
 		}
 	}
 
+	const curatedProviderModels: Model<"openai-completions">[] = [
+		{
+			id: "deepseek-v3.2",
+			name: "DeepSeek-V3.2",
+			api: "openai-completions",
+			provider: "apertis",
+			baseUrl: "https://api.apertis.ai/v1",
+			reasoning: true,
+			input: ["text"],
+			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+			contextWindow: 163840,
+			maxTokens: 65536,
+		},
+		{
+			id: "accounts/fireworks/routers/kimi-k2p5-turbo",
+			name: "Kimi K2.5 Turbo (Fire Pass)",
+			api: "openai-completions",
+			provider: "fireworks",
+			baseUrl: "https://api.fireworks.ai/inference/v1",
+			reasoning: true,
+			input: ["text", "image"],
+			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+			contextWindow: 262144,
+			maxTokens: 65536,
+		},
+		{
+			id: "anthropic/claude-sonnet-4.5",
+			name: "Claude Sonnet 4.5",
+			api: "openai-completions",
+			provider: "kilo",
+			baseUrl: "https://api.kilo.ai/api/gateway",
+			reasoning: true,
+			input: ["text", "image"],
+			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+			contextWindow: 1000000,
+			maxTokens: 64000,
+		},
+	];
+	for (const model of curatedProviderModels) {
+		if (!allModels.some((candidate) => candidate.provider === model.provider && candidate.id === model.id)) {
+			allModels.push(model);
+		}
+	}
+
 	const azureOpenAiModels: Model<Api>[] = allModels
 		.filter((model) => model.provider === "openai" && model.api === "openai-responses")
 		.map((model) => ({

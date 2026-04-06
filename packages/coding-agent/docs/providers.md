@@ -1,27 +1,36 @@
 # Providers
 
-Pi supports subscription-based providers via OAuth and API key providers via environment variables or auth file. For each provider, pi knows all available models. The list is updated with every pi release.
+Pi supports provider authentication via `/login`, environment variables, and `auth.json`. Some `/login` providers return refreshable OAuth credentials, others save API keys after a provider-hosted login flow. For each built-in model provider, pi knows all available models. The list is updated with every pi release.
 
 ## Table of Contents
 
-- [Subscriptions](#subscriptions)
+- [Interactive Login](#interactive-login)
 - [API Keys](#api-keys)
 - [Auth File](#auth-file)
+- [Web Search](#web-search)
 - [Cloud Providers](#cloud-providers)
 - [Custom Providers](#custom-providers)
 - [Resolution Order](#resolution-order)
 
-## Subscriptions
+## Interactive Login
 
-Use `/login` in interactive mode, then select a provider:
+Use `/login` in interactive mode to authenticate with a provider, and `/logout` to remove saved credentials for that provider.
 
+**Refreshable OAuth providers:**
 - Claude Pro/Max
 - ChatGPT Plus/Pro (Codex)
 - GitHub Copilot
 - Google Gemini CLI
 - Google Antigravity
 
-Use `/logout` to clear credentials. Tokens are stored in `~/.pi/agent/auth.json` and auto-refresh when expired.
+**Other login-capable providers:**
+- Kilo Gateway (device login, saves an API key)
+- Apertis.ai
+- Fireworks AI
+- Tavily
+- Parallel
+- Perplexity
+- Z.AI
 
 ### GitHub Copilot
 
@@ -40,6 +49,16 @@ Use `/logout` to clear credentials. Tokens are stored in `~/.pi/agent/auth.json`
 - Requires ChatGPT Plus or Pro subscription
 - Personal use only; for production, use the OpenAI Platform API
 
+### Kilo Gateway
+
+- `/login kilo` uses a device authorization flow and saves the resulting API key in `auth.json`
+- The Kilo model provider also supports direct `KILO_API_KEY` configuration
+
+### Perplexity
+
+- `/login perplexity` requests an email one-time code and stores the returned API key in `auth.json`
+- `web_search` can also use `PERPLEXITY_COOKIES` as an env-only fallback when no API key is configured
+
 ## API Keys
 
 ### Environment Variables or Auth File
@@ -54,16 +73,22 @@ pi
 | Provider | Environment Variable | `auth.json` key |
 |----------|----------------------|------------------|
 | Anthropic | `ANTHROPIC_API_KEY` | `anthropic` |
+| Apertis.ai | `APERTIS_API_KEY` | `apertis` |
 | Azure OpenAI Responses | `AZURE_OPENAI_API_KEY` | `azure-openai-responses` |
-| OpenAI | `OPENAI_API_KEY` | `openai` |
+| Fireworks AI | `FIREWORKS_API_KEY` | `fireworks` |
 | Google Gemini | `GEMINI_API_KEY` | `google` |
+| Kilo Gateway | `KILO_API_KEY` | `kilo` |
 | Mistral | `MISTRAL_API_KEY` | `mistral` |
+| OpenAI | `OPENAI_API_KEY` | `openai` |
 | Groq | `GROQ_API_KEY` | `groq` |
 | Cerebras | `CEREBRAS_API_KEY` | `cerebras` |
 | xAI | `XAI_API_KEY` | `xai` |
 | OpenRouter | `OPENROUTER_API_KEY` | `openrouter` |
 | Vercel AI Gateway | `AI_GATEWAY_API_KEY` | `vercel-ai-gateway` |
-| ZAI | `ZAI_API_KEY` | `zai` |
+| Z.AI | `ZAI_API_KEY` | `zai` |
+| Tavily (`web_search`) | `TAVILY_API_KEY` | `tavily` |
+| Parallel (`web_search`) | `PARALLEL_API_KEY` | `parallel` |
+| Perplexity (`web_search`) | `PERPLEXITY_API_KEY` | `perplexity` |
 | OpenCode Zen | `OPENCODE_API_KEY` | `opencode` |
 | OpenCode Go | `OPENCODE_API_KEY` | `opencode-go` |
 | Hugging Face | `HF_TOKEN` | `huggingface` |
@@ -80,14 +105,18 @@ Store credentials in `~/.pi/agent/auth.json`:
 ```json
 {
   "anthropic": { "type": "api_key", "key": "sk-ant-..." },
-  "openai": { "type": "api_key", "key": "sk-..." },
-  "google": { "type": "api_key", "key": "..." },
-  "opencode": { "type": "api_key", "key": "..." },
-  "opencode-go": { "type": "api_key", "key": "..." }
+  "github-copilot": {
+    "type": "oauth",
+    "access": "...",
+    "refresh": "...",
+    "expires": 1760000000000
+  },
+  "perplexity": { "type": "api_key", "key": "pplx-..." },
+  "tavily": { "type": "api_key", "key": "tvly-..." }
 }
 ```
 
-The file is created with `0600` permissions (user read/write only). Auth file credentials take priority over environment variables.
+`/login` stores either `{ "type": "oauth", ... }` or `{ "type": "api_key", "key": "..." }`, depending on the provider. The file is created with `0600` permissions (user read/write only). Auth file credentials take priority over environment variables.
 
 ### Key Resolution
 
@@ -107,7 +136,37 @@ The `key` field supports three formats:
   { "type": "api_key", "key": "sk-ant-..." }
   ```
 
-OAuth credentials are also stored here after `/login` and managed automatically.
+Refreshable OAuth credentials are also stored here after `/login` and refreshed automatically when they expire.
+
+## Web Search
+
+Enable the built-in web search tool by including `web_search` in your tool list:
+
+```bash
+pi --tools read,bash,edit,write,web_search
+```
+
+Built-in provider fallback order:
+
+1. Tavily
+2. Perplexity
+3. Z.AI
+4. Parallel
+
+Credential resolution for `web_search`:
+
+- **Tavily**: `TAVILY_API_KEY` or `auth.json` / `/login tavily`
+- **Perplexity**: `PERPLEXITY_API_KEY`, `auth.json` / `/login perplexity`, or `PERPLEXITY_COOKIES`
+- **Z.AI**: `ZAI_API_KEY` or `auth.json` / `/login zai`
+- **Parallel**: `PARALLEL_API_KEY` or `auth.json` / `/login parallel`
+
+Notes:
+
+- Automatic mode walks the fallback order above and continues to the next configured provider if the current provider fails.
+- Setting `provider` in the `web_search` tool input disables fallback. pi only queries that provider and does not probe the others.
+- Tavily's current API expects its API key in the JSON request body rather than an `Authorization` header. This matches Tavily's documented API, but it means the key may appear in provider-side request logs.
+- `PERPLEXITY_COOKIES` is env-only. It is used only for Perplexity web search when no API key is available. Set it to a single-line `Cookie` header value.
+- The current Z.AI `web_search` implementation reports a limitation because this build does not include the remote MCP client required for Z.AI's search endpoint.
 
 ## Cloud Providers
 
@@ -193,3 +252,5 @@ When resolving credentials for a provider:
 2. `auth.json` entry (API key or OAuth token)
 3. Environment variable
 4. Custom provider keys from `models.json`
+
+Provider-specific fallbacks can add extra sources on top of this. For example, Perplexity `web_search` also checks `PERPLEXITY_COOKIES` when no API key is configured.

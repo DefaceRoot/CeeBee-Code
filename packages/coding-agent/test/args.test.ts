@@ -1,7 +1,11 @@
-import { describe, expect, test } from "vitest";
-import { parseArgs } from "../src/cli/args.js";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { parseArgs, printHelp } from "../src/cli/args.js";
 
 describe("parseArgs", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
 	describe("--version flag", () => {
 		test("parses --version flag", () => {
 			const result = parseArgs(["--version"]);
@@ -251,6 +255,11 @@ describe("parseArgs", () => {
 			expect(result.noTools).toBe(true);
 			expect(result.tools).toEqual(["read", "bash"]);
 		});
+
+		test("parses web_search in --tools", () => {
+			const result = parseArgs(["--tools", "read,web_search"]);
+			expect(result.tools).toEqual(["read", "web_search"]);
+		});
 	});
 
 	describe("messages and file args", () => {
@@ -295,6 +304,33 @@ describe("parseArgs", () => {
 			expect(result.thinking).toBe("high");
 			expect(result.fileArgs).toEqual(["prompt.md"]);
 			expect(result.messages).toEqual(["Do the task"]);
+		});
+	});
+
+	describe("printHelp", () => {
+		test("documents web_search in tool help", () => {
+			const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+			printHelp();
+
+			const output = logSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+			expect(output).toContain("web_search");
+			expect(output).toContain("Search the web via configured built-in providers");
+		});
+
+		test("documents provider login and web search environment variables", () => {
+			const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+			printHelp();
+
+			const output = logSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+			expect(output).toContain("APERTIS_API_KEY");
+			expect(output).toContain("FIREWORKS_API_KEY");
+			expect(output).toContain("KILO_API_KEY");
+			expect(output).toContain("TAVILY_API_KEY");
+			expect(output).toContain("PARALLEL_API_KEY");
+			expect(output).toContain("PERPLEXITY_API_KEY");
+			expect(output).toContain("PERPLEXITY_COOKIES");
 		});
 	});
 });

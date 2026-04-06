@@ -2,9 +2,10 @@
 name: frontend-worker
 description: Frontend implementation — UI components, pages, styles, hooks
 tools: read, write, edit, bash, mcp:chrome-devtools
-model: anthropic/claude-sonnet-4
-skills:
+model: github-copilot/claude-opus-4.6
+thinking: high
 ---
+
 # Frontend Worker
 
 Frontend implementation specialist.

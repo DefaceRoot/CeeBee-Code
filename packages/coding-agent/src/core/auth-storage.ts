@@ -32,6 +32,27 @@ export type AuthCredential = ApiKeyCredential | OAuthCredential;
 
 export type AuthStorageData = Record<string, AuthCredential>;
 
+function isAuthCredential(result: OAuthCredentials | AuthCredential): result is AuthCredential {
+	return "type" in result && (result.type === "api_key" || result.type === "oauth");
+}
+
+function normalizeProviderLoginResult(result: OAuthCredentials | AuthCredential): AuthCredential {
+	if (isAuthCredential(result)) {
+		return result;
+	}
+	const { type: _type, ...credentials } = result as OAuthCredentials & { type?: unknown };
+	return { type: "oauth", ...credentials };
+}
+
+function supportsOAuthTokenOperations(provider: ReturnType<typeof getOAuthProvider>): provider is NonNullable<
+	ReturnType<typeof getOAuthProvider>
+> & {
+	refreshToken: (credentials: OAuthCredentials) => Promise<OAuthCredentials>;
+	getApiKey: (credentials: OAuthCredentials) => string;
+} {
+	return provider !== undefined && provider.refreshToken !== undefined && provider.getApiKey !== undefined;
+}
+
 type LockResult<T> = {
 	result: T;
 	next?: string;
@@ -343,7 +364,7 @@ export class AuthStorage {
 	}
 
 	/**
-	 * Login to an OAuth provider.
+	 * Authenticate with a login-capable provider.
 	 */
 	async login(providerId: OAuthProviderId, callbacks: OAuthLoginCallbacks): Promise<void> {
 		const provider = getOAuthProvider(providerId);
@@ -351,8 +372,8 @@ export class AuthStorage {
 			throw new Error(`Unknown OAuth provider: ${providerId}`);
 		}
 
-		const credentials = await provider.login(callbacks);
-		this.set(providerId, { type: "oauth", ...credentials });
+		const credentials = normalizeProviderLoginResult(await provider.login(callbacks));
+		this.set(providerId, credentials);
 	}
 
 	/**
@@ -370,7 +391,7 @@ export class AuthStorage {
 		providerId: OAuthProviderId,
 	): Promise<{ apiKey: string; newCredentials: OAuthCredentials } | null> {
 		const provider = getOAuthProvider(providerId);
-		if (!provider) {
+		if (!supportsOAuthTokenOperations(provider)) {
 			return null;
 		}
 
@@ -436,8 +457,8 @@ export class AuthStorage {
 
 		if (cred?.type === "oauth") {
 			const provider = getOAuthProvider(providerId);
-			if (!provider) {
-				// Unknown OAuth provider, can't get API key
+			if (!supportsOAuthTokenOperations(provider)) {
+				// Unknown or non-refreshable provider, can't get API key from OAuth credentials
 				return undefined;
 			}
 
@@ -485,7 +506,7 @@ export class AuthStorage {
 	}
 
 	/**
-	 * Get all registered OAuth providers
+	 * Get all registered login-capable providers.
 	 */
 	getOAuthProviders() {
 		return getOAuthProviders();

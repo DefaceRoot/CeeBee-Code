@@ -2,9 +2,10 @@
 name: explorer-worker
 description: Codebase analysis specialist — maps project structure, finds patterns, traces dependencies
 tools: read, bash, find, grep, ls
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4-mini
+thinking: low
 ---
+
 # Explorer Worker
 
 Codebase analysis and structural mapping specialist. Read-only access.

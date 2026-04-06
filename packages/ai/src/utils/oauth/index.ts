@@ -2,15 +2,18 @@
  * OAuth credential management for AI providers.
  *
  * This module handles login, token refresh, and credential storage
- * for OAuth-based providers:
- * - Anthropic (Claude Pro/Max)
- * - GitHub Copilot
- * - Google Cloud Code Assist (Gemini CLI)
- * - Antigravity (Gemini 3, Claude, GPT-OSS via Google Cloud)
+ * for login-capable providers:
+ * - OAuth/device providers: Anthropic, Kilo, GitHub Copilot, Google Cloud Code Assist,
+ *   Antigravity, OpenAI Codex
+ * - API-key login providers: Apertis, Fireworks, Tavily, Parallel, Perplexity, Z.AI
  */
 
 // Anthropic
 export { anthropicOAuthProvider, loginAnthropic, refreshAnthropicToken } from "./anthropic.js";
+// Apertis
+export { apertisOAuthProvider, loginApertis } from "./apertis.js";
+// Fireworks
+export { fireworksOAuthProvider, loginFireworks } from "./fireworks.js";
 // GitHub Copilot
 export {
 	getGitHubCopilotBaseUrl,
@@ -23,33 +26,71 @@ export {
 export { antigravityOAuthProvider, loginAntigravity, refreshAntigravityToken } from "./google-antigravity.js";
 // Google Gemini CLI
 export { geminiCliOAuthProvider, loginGeminiCli, refreshGoogleCloudToken } from "./google-gemini-cli.js";
+// Kilo
+export { kiloOAuthProvider, loginKilo } from "./kilo.js";
 // OpenAI Codex (ChatGPT OAuth)
 export { loginOpenAICodex, openaiCodexOAuthProvider, refreshOpenAICodexToken } from "./openai-codex.js";
-
+// Parallel
+export { loginParallel, parallelOAuthProvider } from "./parallel.js";
+// Perplexity
+export { loginPerplexity, perplexityOAuthProvider } from "./perplexity.js";
+// Tavily
+export { loginTavily, tavilyOAuthProvider } from "./tavily.js";
 export * from "./types.js";
+// Z.AI
+export { loginZai, zaiOAuthProvider } from "./zai.js";
 
 // ============================================================================
 // Provider Registry
 // ============================================================================
 
 import { anthropicOAuthProvider } from "./anthropic.js";
+import { apertisOAuthProvider } from "./apertis.js";
+import { fireworksOAuthProvider } from "./fireworks.js";
 import { githubCopilotOAuthProvider } from "./github-copilot.js";
 import { antigravityOAuthProvider } from "./google-antigravity.js";
 import { geminiCliOAuthProvider } from "./google-gemini-cli.js";
+import { kiloOAuthProvider } from "./kilo.js";
 import { openaiCodexOAuthProvider } from "./openai-codex.js";
+import { parallelOAuthProvider } from "./parallel.js";
+import { perplexityOAuthProvider } from "./perplexity.js";
+import { tavilyOAuthProvider } from "./tavily.js";
 import type { OAuthCredentials, OAuthProviderId, OAuthProviderInfo, OAuthProviderInterface } from "./types.js";
+import { zaiOAuthProvider } from "./zai.js";
 
 const BUILT_IN_OAUTH_PROVIDERS: OAuthProviderInterface[] = [
+	kiloOAuthProvider,
 	anthropicOAuthProvider,
 	githubCopilotOAuthProvider,
 	geminiCliOAuthProvider,
 	antigravityOAuthProvider,
 	openaiCodexOAuthProvider,
+	perplexityOAuthProvider,
+	apertisOAuthProvider,
+	fireworksOAuthProvider,
+	tavilyOAuthProvider,
+	parallelOAuthProvider,
+	zaiOAuthProvider,
 ];
 
 const oauthProviderRegistry = new Map<string, OAuthProviderInterface>(
 	BUILT_IN_OAUTH_PROVIDERS.map((provider) => [provider.id, provider]),
 );
+
+function assertOAuthOperations(
+	providerId: OAuthProviderId,
+	provider: OAuthProviderInterface | undefined,
+): asserts provider is OAuthProviderInterface & {
+	refreshToken: (credentials: OAuthCredentials) => Promise<OAuthCredentials>;
+	getApiKey: (credentials: OAuthCredentials) => string;
+} {
+	if (!provider) {
+		throw new Error(`Unknown OAuth provider: ${providerId}`);
+	}
+	if (!provider.refreshToken || !provider.getApiKey) {
+		throw new Error(`Provider ${providerId} does not support OAuth token operations`);
+	}
+}
 
 /**
  * Get an OAuth provider by ID
@@ -121,9 +162,7 @@ export async function refreshOAuthToken(
 	credentials: OAuthCredentials,
 ): Promise<OAuthCredentials> {
 	const provider = getOAuthProvider(providerId);
-	if (!provider) {
-		throw new Error(`Unknown OAuth provider: ${providerId}`);
-	}
+	assertOAuthOperations(providerId, provider);
 	return provider.refreshToken(credentials);
 }
 
@@ -139,9 +178,7 @@ export async function getOAuthApiKey(
 	credentials: Record<string, OAuthCredentials>,
 ): Promise<{ newCredentials: OAuthCredentials; apiKey: string } | null> {
 	const provider = getOAuthProvider(providerId);
-	if (!provider) {
-		throw new Error(`Unknown OAuth provider: ${providerId}`);
-	}
+	assertOAuthOperations(providerId, provider);
 
 	let creds = credentials[providerId];
 	if (!creds) {

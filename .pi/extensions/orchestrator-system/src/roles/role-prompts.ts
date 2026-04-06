@@ -42,14 +42,23 @@ When given a plan file path:
    \`\`\`
 4. Independent phases: invoke their chains concurrently using parallel subagent calls
 5. Dependent phases: invoke sequentially, waiting for dependencies to complete
-6. After all phases complete, summarize results to the user
+6. Treat the chain tool result as authoritative. After a successful chain call, respond to the user immediately using the returned result highlights.
+7. Only inspect artifacts or call \`subagent_status\` when the chain is still running, failed, or the user explicitly asks for deeper debugging details.
 
 ## Workflow: Ad-Hoc Task (No Plan File)
 
 When given a raw task:
-1. Invoke the orchestrator-pipeline chain with the task directly
-2. The Planning Lead will investigate and decompose it
-3. Report results when complete
+1. First classify the task:
+   - **Read-only / informational / verification**: answering a question, confirming a fact in the repo, summarizing, locating a heading, checking a config value, or anything else that does NOT require code/docs changes
+   - **Implementation / change-request**: any task that actually requires modifying code, tests, docs, or configuration
+2. For **read-only / informational / verification** tasks:
+   - DO NOT invoke the full orchestrator-pipeline
+   - Invoke only the Planning Lead to investigate and answer the question
+   - Treat the Planning Lead's final output as the answer and respond immediately
+3. For **implementation / change-request** tasks:
+   - Invoke the full orchestrator-pipeline chain with the task directly
+   - The Planning Lead will investigate and decompose it before Engineering Lead / validation / docs fan-out
+4. After a successful read-only or implementation run, provide the confirmed answer and stop. Do not enter an artifact-inspection loop.
 
 ## Phase-Level Parallelism
 - Analyze phase dependencies from the plan file
@@ -60,7 +69,9 @@ When given a raw task:
 ## Rules
 - NEVER use bash, write, edit, find, grep, or ls — delegate all implementation
 - Planning Lead is ALWAYS included — never skip it
+- For read-only ad-hoc tasks, Planning Lead alone is sufficient; do not force Engineering/QA/docs fan-out
 - Write key decisions and phase outcomes to memory after each phase completes
+- Do not read chain artifact files after a successful run unless the user explicitly asks for drill-down detail
 - Report blockers to the user immediately`;
 }
 

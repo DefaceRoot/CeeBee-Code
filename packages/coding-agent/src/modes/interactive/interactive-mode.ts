@@ -3828,12 +3828,14 @@ export class InteractiveMode {
 
 	private async showOAuthSelector(mode: "login" | "logout"): Promise<void> {
 		if (mode === "logout") {
-			const providers = this.session.modelRegistry.authStorage.list();
-			const loggedInProviders = providers.filter(
-				(p) => this.session.modelRegistry.authStorage.get(p)?.type === "oauth",
+			const registeredProviders = new Set(
+				this.session.modelRegistry.authStorage.getOAuthProviders().map((provider) => provider.id),
 			);
-			if (loggedInProviders.length === 0) {
-				this.showStatus("No OAuth providers logged in. Use /login first.");
+			const authenticatedProviders = this.session.modelRegistry.authStorage
+				.list()
+				.filter((providerId) => registeredProviders.has(providerId));
+			if (authenticatedProviders.length === 0) {
+				this.showStatus("No authenticated providers. Use /login first.");
 				return;
 			}
 		}
@@ -3858,9 +3860,11 @@ export class InteractiveMode {
 							this.session.modelRegistry.authStorage.logout(providerId);
 							this.session.modelRegistry.refresh();
 							await this.updateAvailableProviderCount();
-							this.showStatus(`Logged out of ${providerName}`);
+							this.showStatus(`Removed saved credentials for ${providerName}`);
 						} catch (error: unknown) {
-							this.showError(`Logout failed: ${error instanceof Error ? error.message : String(error)}`);
+							this.showError(
+								`Failed to remove saved credentials: ${error instanceof Error ? error.message : String(error)}`,
+							);
 						}
 					}
 				},
@@ -3952,12 +3956,12 @@ export class InteractiveMode {
 			restoreEditor();
 			this.session.modelRegistry.refresh();
 			await this.updateAvailableProviderCount();
-			this.showStatus(`Logged in to ${providerName}. Credentials saved to ${getAuthPath()}`);
+			this.showStatus(`Authenticated with ${providerName}. Credentials saved to ${getAuthPath()}`);
 		} catch (error: unknown) {
 			restoreEditor();
 			const errorMsg = error instanceof Error ? error.message : String(error);
 			if (errorMsg !== "Login cancelled") {
-				this.showError(`Failed to login to ${providerName}: ${errorMsg}`);
+				this.showError(`Failed to authenticate with ${providerName}: ${errorMsg}`);
 			}
 		}
 	}

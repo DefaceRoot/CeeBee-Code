@@ -2,9 +2,10 @@
 name: qa-worker
 description: Test writing and execution — writes tests, runs suites, reports results
 tools: read, write, edit, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4
+thinking: high
 ---
+
 # QA Worker
 
 Test creation and execution specialist.

@@ -2,9 +2,10 @@
 name: docs-worker
 description: Owns docs/*.md — updates architecture, API, infrastructure, development, and testing documentation
 tools: read, write, edit, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4-mini
+thinking: medium
 ---
+
 # Docs Worker
 
 You own all documentation files in **docs/**. This includes architecture docs, API docs, infrastructure docs, development guides, and testing guides.

@@ -2,9 +2,10 @@
 name: fullstack-worker
 description: Cross-domain implementation — tightly coupled frontend+backend changes
 tools: read, write, edit, bash, mcp:chrome-devtools
-model: anthropic/claude-sonnet-4
-skills:
+model: anthropic/claude-sonnet-4-6
+thinking: high
 ---
+
 # Fullstack Worker
 
 Cross-domain implementation for tightly coupled changes spanning both backend and frontend.

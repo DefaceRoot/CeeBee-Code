@@ -26,6 +26,7 @@ import {
 	createLsTool,
 	createReadOnlyTools,
 	createReadTool,
+	createWebSearchTool,
 	createWriteTool,
 	editTool,
 	findTool,
@@ -35,6 +36,7 @@ import {
 	readTool,
 	type Tool,
 	type ToolName,
+	webSearchTool,
 	withFileMutationQueue,
 	writeTool,
 } from "./tools/index.js";
@@ -128,6 +130,8 @@ export {
 	createGrepTool,
 	createFindTool,
 	createLsTool,
+	createWebSearchTool,
+	webSearchTool,
 };
 
 // Helper Functions

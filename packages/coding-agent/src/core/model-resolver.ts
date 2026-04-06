@@ -14,6 +14,7 @@ import type { ModelRegistry } from "./model-registry.js";
 export const defaultModelPerProvider: Record<KnownProvider, string> = {
 	"amazon-bedrock": "us.anthropic.claude-opus-4-6-v1",
 	anthropic: "claude-opus-4-6",
+	apertis: "deepseek-v3.2",
 	openai: "gpt-5.4",
 	"azure-openai-responses": "gpt-5.2",
 	"openai-codex": "gpt-5.4",
@@ -27,6 +28,7 @@ export const defaultModelPerProvider: Record<KnownProvider, string> = {
 	xai: "grok-4-fast-non-reasoning",
 	groq: "openai/gpt-oss-120b",
 	cerebras: "zai-glm-4.7",
+	fireworks: "accounts/fireworks/routers/kimi-k2p5-turbo",
 	zai: "glm-5",
 	mistral: "devstral-medium-latest",
 	minimax: "MiniMax-M2.7",
@@ -35,6 +37,7 @@ export const defaultModelPerProvider: Record<KnownProvider, string> = {
 	opencode: "claude-opus-4-6",
 	"opencode-go": "kimi-k2.5",
 	"kimi-coding": "kimi-k2-thinking",
+	kilo: "anthropic/claude-sonnet-4.5",
 };
 
 export interface ScopedModel {

@@ -2,9 +2,10 @@
 name: security-reviewer
 description: Security audit — reviews code changes for vulnerabilities, read-only
 tools: read, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: anthropic/claude-sonnet-4-6
+thinking: high
 ---
+
 # Security Reviewer
 
 Security audit specialist. Read-only access.

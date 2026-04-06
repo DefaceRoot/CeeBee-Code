@@ -7,6 +7,35 @@ export type OAuthCredentials = {
 	[key: string]: unknown;
 };
 
+export type ApiKeyCredentials = {
+	type: "api_key";
+	key: string;
+};
+
+export type StoredOAuthCredentials = {
+	type: "oauth";
+} & OAuthCredentials;
+
+export type OAuthStoredCredential = ApiKeyCredentials | StoredOAuthCredentials;
+
+/**
+ * Providers may return raw OAuth credentials for legacy compatibility or a
+ * fully tagged credential object for persistence.
+ */
+export type OAuthLoginResult = OAuthCredentials | OAuthStoredCredential;
+
+function isStoredCredential(result: OAuthLoginResult): result is OAuthStoredCredential {
+	return "type" in result && (result.type === "api_key" || result.type === "oauth");
+}
+
+export function normalizeOAuthLoginResult(result: OAuthLoginResult): OAuthStoredCredential {
+	if (isStoredCredential(result)) {
+		return result;
+	}
+	const { type: _type, ...credentials } = result as OAuthCredentials & { type?: unknown };
+	return { type: "oauth", ...credentials };
+}
+
 export type OAuthProviderId = string;
 
 /** @deprecated Use OAuthProviderId instead */
@@ -36,16 +65,16 @@ export interface OAuthProviderInterface {
 	readonly name: string;
 
 	/** Run the login flow, return credentials to persist */
-	login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials>;
+	login(callbacks: OAuthLoginCallbacks): Promise<OAuthLoginResult>;
 
 	/** Whether login uses a local callback server and supports manual code input. */
 	usesCallbackServer?: boolean;
 
 	/** Refresh expired credentials, return updated credentials to persist */
-	refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials>;
+	refreshToken?(credentials: OAuthCredentials): Promise<OAuthCredentials>;
 
 	/** Convert credentials to API key string for the provider */
-	getApiKey(credentials: OAuthCredentials): string;
+	getApiKey?(credentials: OAuthCredentials): string;
 
 	/** Optional: modify models for this provider (e.g., update baseUrl) */
 	modifyModels?(models: Model<Api>[], credentials: OAuthCredentials): Model<Api>[];

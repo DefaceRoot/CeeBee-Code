@@ -73,6 +73,20 @@ export {
 	truncateTail,
 } from "./truncate.js";
 export {
+	createWebSearchTool,
+	createWebSearchToolDefinition,
+	getWebSearchProvider,
+	getWebSearchProviders,
+	WEB_SEARCH_FALLBACK_ORDER,
+	type WebSearchProviderId,
+	type WebSearchResponse,
+	type WebSearchResultItem,
+	type WebSearchToolDetails,
+	type WebSearchToolInput,
+	webSearchTool,
+	webSearchToolDefinition,
+} from "./web-search/index.js";
+export {
 	createWriteTool,
 	createWriteToolDefinition,
 	type WriteOperations,
@@ -102,6 +116,12 @@ import {
 	readTool,
 	readToolDefinition,
 } from "./read.js";
+import {
+	createWebSearchTool,
+	createWebSearchToolDefinition,
+	webSearchTool,
+	webSearchToolDefinition,
+} from "./web-search/index.js";
 import { createWriteTool, createWriteToolDefinition, writeTool, writeToolDefinition } from "./write.js";
 
 export type Tool = AgentTool<any>;
@@ -118,6 +138,7 @@ export const allTools = {
 	grep: grepTool,
 	find: findTool,
 	ls: lsTool,
+	web_search: webSearchTool,
 };
 
 export const allToolDefinitions = {
@@ -128,6 +149,7 @@ export const allToolDefinitions = {
 	grep: grepToolDefinition,
 	find: findToolDefinition,
 	ls: lsToolDefinition,
+	web_search: webSearchToolDefinition,
 };
 
 export type ToolName = keyof typeof allTools;
@@ -164,6 +186,7 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		grep: createGrepToolDefinition(cwd),
 		find: createFindToolDefinition(cwd),
 		ls: createLsToolDefinition(cwd),
+		web_search: createWebSearchToolDefinition(cwd),
 	};
 }
 
@@ -189,5 +212,6 @@ export function createAllTools(cwd: string, options?: ToolsOptions): Record<Tool
 		grep: createGrepTool(cwd),
 		find: createFindTool(cwd),
 		ls: createLsTool(cwd),
+		web_search: createWebSearchTool(cwd),
 	};
 }

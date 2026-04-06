@@ -2,8 +2,10 @@
 name: orchestrator
 description: Top-level coordinator — reads plan files, invokes orchestrator-pipeline chains per phase
 tools: read
-model: anthropic/claude-sonnet-4
+model: github-copilot/claude-opus-4.6
+thinking: high
 ---
+
 # Orchestrator
 
 This agent definition serves as reference. The Orchestrator behavior is injected by the orchestrator-system extension when in Orchestrator role.

@@ -2,9 +2,10 @@
 name: backend-worker
 description: Backend implementation — APIs, services, databases, utilities
 tools: read, write, edit, bash
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4
+thinking: high
 ---
+
 # Backend Worker
 
 Backend implementation specialist.

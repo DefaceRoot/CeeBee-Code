@@ -298,6 +298,73 @@ describe("AuthStorage", () => {
 		});
 	});
 
+	describe("login persistence", () => {
+		test("login persists api_key credentials returned by a login-capable provider", async () => {
+			const providerId = `test-api-key-provider-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+			registerOAuthProvider({
+				id: providerId,
+				name: "Test API Key Provider",
+				async login() {
+					return {
+						type: "api_key",
+						key: "persisted-api-key",
+					};
+				},
+			});
+
+			authStorage = AuthStorage.create(authJsonPath);
+			await authStorage.login(providerId, {
+				onAuth: () => {},
+				onPrompt: async () => "",
+			});
+
+			expect(authStorage.get(providerId)).toEqual({
+				type: "api_key",
+				key: "persisted-api-key",
+			});
+			expect(JSON.parse(readFileSync(authJsonPath, "utf-8")) as Record<string, unknown>).toMatchObject({
+				[providerId]: {
+					type: "api_key",
+					key: "persisted-api-key",
+				},
+			});
+		});
+
+		test("login persists oauth credentials returned by a login-capable provider", async () => {
+			const providerId = `test-login-oauth-provider-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+			registerOAuthProvider({
+				id: providerId,
+				name: "Test Login OAuth Provider",
+				async login() {
+					return {
+						type: "oauth",
+						refresh: "refresh-token",
+						access: "access-token",
+						expires: Date.now() + 60_000,
+					};
+				},
+				async refreshToken(credentials) {
+					return credentials;
+				},
+				getApiKey(credentials) {
+					return credentials.access;
+				},
+			});
+
+			authStorage = AuthStorage.create(authJsonPath);
+			await authStorage.login(providerId, {
+				onAuth: () => {},
+				onPrompt: async () => "",
+			});
+
+			expect(authStorage.get(providerId)).toMatchObject({
+				type: "oauth",
+				refresh: "refresh-token",
+				access: "access-token",
+			});
+		});
+	});
+
 	describe("oauth lock compromise handling", () => {
 		test("returns undefined on compromised lock and allows a later retry", async () => {
 			const providerId = `test-oauth-provider-${Date.now()}-${Math.random().toString(36).slice(2)}`;

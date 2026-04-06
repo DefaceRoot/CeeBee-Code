@@ -2,9 +2,10 @@
 name: research-worker
 description: Online research specialist — web research using MCP tools and web search
 tools: read, bash, mcp:ref, mcp:augment
-model: anthropic/claude-sonnet-4
-skills:
+model: openai-codex/gpt-5.4-mini
+thinking: medium
 ---
+
 # Research Worker
 
 Online research and information gathering specialist.

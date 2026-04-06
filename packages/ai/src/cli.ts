@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { createInterface } from "readline";
-import { getOAuthProvider, getOAuthProviders } from "./utils/oauth/index.js";
+import { getOAuthProvider, getOAuthProviders, normalizeOAuthLoginResult } from "./utils/oauth/index.js";
 import type { OAuthCredentials, OAuthProviderId } from "./utils/oauth/types.js";
 
 const AUTH_FILE = "auth.json";
@@ -12,7 +12,14 @@ function prompt(rl: ReturnType<typeof createInterface>, question: string): Promi
 	return new Promise((resolve) => rl.question(question, resolve));
 }
 
-function loadAuth(): Record<string, { type: "oauth" } & OAuthCredentials> {
+type AuthFileEntry =
+	| ({ type: "oauth" } & OAuthCredentials)
+	| {
+			type: "api_key";
+			key: string;
+	  };
+
+function loadAuth(): Record<string, AuthFileEntry> {
 	if (!existsSync(AUTH_FILE)) return {};
 	try {
 		return JSON.parse(readFileSync(AUTH_FILE, "utf-8"));
@@ -21,7 +28,7 @@ function loadAuth(): Record<string, { type: "oauth" } & OAuthCredentials> {
 	}
 }
 
-function saveAuth(auth: Record<string, { type: "oauth" } & OAuthCredentials>): void {
+function saveAuth(auth: Record<string, AuthFileEntry>): void {
 	writeFileSync(AUTH_FILE, JSON.stringify(auth, null, 2), "utf-8");
 }
 
@@ -36,20 +43,22 @@ async function login(providerId: OAuthProviderId): Promise<void> {
 	const promptFn = (msg: string) => prompt(rl, `${msg} `);
 
 	try {
-		const credentials = await provider.login({
-			onAuth: (info) => {
-				console.log(`\nOpen this URL in your browser:\n${info.url}`);
-				if (info.instructions) console.log(info.instructions);
-				console.log();
-			},
-			onPrompt: async (p) => {
-				return await promptFn(`${p.message}${p.placeholder ? ` (${p.placeholder})` : ""}:`);
-			},
-			onProgress: (msg) => console.log(msg),
-		});
+		const credentials = normalizeOAuthLoginResult(
+			await provider.login({
+				onAuth: (info) => {
+					console.log(`\nOpen this URL in your browser:\n${info.url}`);
+					if (info.instructions) console.log(info.instructions);
+					console.log();
+				},
+				onPrompt: async (p) => {
+					return await promptFn(`${p.message}${p.placeholder ? ` (${p.placeholder})` : ""}:`);
+				},
+				onProgress: (msg) => console.log(msg),
+			}),
+		);
 
 		const auth = loadAuth();
-		auth[providerId] = { type: "oauth", ...credentials };
+		auth[providerId] = credentials;
 		saveAuth(auth);
 
 		console.log(`\nCredentials saved to ${AUTH_FILE}`);
@@ -67,7 +76,7 @@ async function main(): Promise<void> {
 		console.log(`Usage: npx @mariozechner/pi-ai <command> [provider]
 
 Commands:
-  login [provider]  Login to an OAuth provider
+  login [provider]  Authenticate with a provider
   list              List available providers
 
 Providers:
@@ -82,7 +91,7 @@ Examples:
 	}
 
 	if (command === "list") {
-		console.log("Available OAuth providers:\n");
+		console.log("Available login providers:\n");
 		for (const p of PROVIDERS) {
 			console.log(`  ${p.id.padEnd(20)} ${p.name}`);
 		}
@@ -117,7 +126,7 @@ Examples:
 			process.exit(1);
 		}
 
-		console.log(`Logging in to ${provider}...`);
+		console.log(`Authenticating with ${provider}...`);
 		await login(provider);
 		return;
 	}

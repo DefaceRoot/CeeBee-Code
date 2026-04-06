@@ -378,11 +378,15 @@ describe("default model selection", () => {
 		expect(defaultModelPerProvider["openai-codex"]).toBe("gpt-5.4");
 	});
 
-	test("zai, minimax, and cerebras defaults track current models", () => {
-		expect(defaultModelPerProvider.zai).toBe("glm-5");
-		expect(defaultModelPerProvider.minimax).toBe("MiniMax-M2.7");
-		expect(defaultModelPerProvider["minimax-cn"]).toBe("MiniMax-M2.7");
-		expect(defaultModelPerProvider.cerebras).toBe("zai-glm-4.7");
+	test("zai, minimax, cerebras, and new curated providers track current models", () => {
+		const defaults = defaultModelPerProvider as Record<string, string>;
+		expect(defaults.zai).toBe("glm-5");
+		expect(defaults.minimax).toBe("MiniMax-M2.7");
+		expect(defaults["minimax-cn"]).toBe("MiniMax-M2.7");
+		expect(defaults.cerebras).toBe("zai-glm-4.7");
+		expect(defaults.apertis).toBe("deepseek-v3.2");
+		expect(defaults.fireworks).toBe("accounts/fireworks/routers/kimi-k2p5-turbo");
+		expect(defaults.kilo).toBe("anthropic/claude-sonnet-4.5");
 	});
 
 	test("ai-gateway default is opus 4.6", () => {

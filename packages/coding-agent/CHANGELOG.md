@@ -72,11 +72,14 @@ After runtime replacement, use `runtimeHost.session` as the new live session and
 ### Added
 
 - Added public SDK runtime-host exports `createAgentSessionRuntime()` and `AgentSessionRuntimeHost` for apps that need runtime-backed session replacement and mode-style session switching
-
+- Added provider-authentication support for `/login` and `/logout` across refreshable OAuth and saved API-key flows, including Apertis.ai, Fireworks AI, Kilo Gateway, Tavily, Parallel, Perplexity, and Z.AI.
+- Added first-class default model support for the `apertis`, `fireworks`, and `kilo` providers.
+- Added a built-in `web_search` tool with Tavily, Perplexity, Z.AI, and Parallel provider integration and fallback ordering.
 - Added label timestamps to the session tree with a `Shift+T` toggle in `/tree`, smart date formatting, and timestamp preservation through branching ([#2691](https://github.com/badlogic/pi-mono/pull/2691) by [@w-winter](https://github.com/w-winter))
 
 ### Fixed
 
+- Fixed `/logout` and provider-auth UI state to include providers authenticated through saved API keys, not just refreshable OAuth credentials.
 - Fixed theme `export` colors to resolve theme variables the same way as `colors`, so `/export` HTML backgrounds now honor entries like `pageBg: "base"` instead of requiring inline hex values ([#2707](https://github.com/badlogic/pi-mono/issues/2707))
 
 ## [0.64.0] - 2026-03-29
